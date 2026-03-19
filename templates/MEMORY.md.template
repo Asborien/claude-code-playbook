@@ -1,0 +1,24 @@
+# Claude Code Memory — [PROJECT NAME]
+
+> Concise index of memory files. Details in individual topic files.
+> This file is loaded into conversation context — keep it under 200 lines.
+
+## Memory types
+
+- **user** — Who the user is, preferences, working style
+- **feedback** — Corrections and guidance (don't repeat mistakes)
+- **project** — Ongoing work, goals, decisions, deadlines
+- **reference** — Pointers to external systems and resources
+
+## Session checklist
+
+<!-- Customise this for your project: -->
+
+1. Auto-loads CLAUDE.md (project context)
+2. Check git status
+3. Check what's in progress
+
+## Topic files
+
+<!-- Add entries as memory files are created: -->
+<!-- Example: `user_role.md`, `feedback_testing.md`, `project_launch-plan.md` -->

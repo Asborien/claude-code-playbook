@@ -1,0 +1,110 @@
+# CLAUDE.md — [PROJECT NAME]
+
+This file is loaded automatically by Claude Code at the start of every session.
+**Keep it accurate and concise.** Update it whenever significant state changes.
+
+---
+
+## Operating mode
+
+<!-- Choose one or customise: -->
+Execute tasks fully and autonomously. Narrate steps and share output as normal.
+Do not pause mid-task to ask for confirmation or approval — complete the task, then report back.
+
+---
+
+## Current release + targets
+
+<!-- CRITICAL: This section tells Claude what to focus on RIGHT NOW. -->
+<!-- Update this every time priorities change. -->
+
+**Active release:** [e.g., v0.1.0 — MVP launch]
+**Target date:** [e.g., 2026-04-15]
+
+**Sprint targets:**
+- [Target 1]
+- [Target 2]
+
+**Before starting ANY work, ask:** "Which release is this for? Is it on the critical path?"
+If it's not in the current release scope, log it as a GitHub issue and move on.
+
+---
+
+## Project identity
+
+- **Repo:** [repo name]
+- **Product:** [product name and URL]
+- **Owner:** [name and email]
+
+---
+
+## Tech stack
+
+<!-- List your actual stack. This helps Claude make correct technology choices. -->
+
+| Layer | Tech |
+|---|---|
+| Language | [e.g., TypeScript] |
+| Framework | [e.g., Next.js 16, App Router] |
+| Database | [e.g., PostgreSQL via Prisma] |
+| Auth | [e.g., Clerk] |
+| Hosting | [e.g., Vercel] |
+| Testing | [e.g., Vitest + Playwright] |
+| Package manager | [e.g., pnpm — never use npm or yarn] |
+
+---
+
+## Key conventions
+
+<!-- Project-specific rules that Claude must follow. -->
+<!-- Examples: -->
+
+- **Imports:** Absolute imports via `@/` alias
+- **Styling:** [Tailwind / CSS modules / etc.]
+- **Components:** [shadcn/ui / custom / etc.]
+- **i18n:** [next-intl / react-intl / none]
+
+---
+
+## GitHub workflow
+
+<!-- Adapt to your branch strategy: -->
+
+- **Branch → PR → squash merge for every change.**
+- **Commit message format:** `FEAT:`, `FIX:`, `DOCS:`, `ENG:` prefix
+- **All PRs target `[main branch]`**
+- **Every issue and PR must have:** assignee, at least one label, a milestone
+
+---
+
+## Running the project
+
+```bash
+# Dev server
+[your dev command]
+
+# Build check
+[your build command]
+
+# Tests
+[your test command]
+```
+
+---
+
+## Docs lookup — read BEFORE you act
+
+<!-- List the docs Claude should read before touching specific areas. -->
+<!-- This prevents Claude from guessing when documentation exists. -->
+
+| If you're touching... | Read first |
+|----------------------|-----------|
+| [area] | [doc path] |
+
+---
+
+## Design authority
+
+<!-- Link to your design system, guidelines, or brand docs. -->
+
+[Link to design guidelines]
