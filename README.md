@@ -79,10 +79,25 @@ Power-user tools for screenshots, CI watching, responsive testing. See [`extras/
 4. **Docs alongside code.** Change code → update docs. Same commit.
 5. **Enforce, don't remember.** Hooks and automation over willpower.
 
-## Origin
+## Important notes
 
-Extracted from [Certified Coach](https://www.certified-coach.com) — 472+ commits, 250+ issues, built and shipped daily with Claude Code.
+- **This is opinionated.** These practices work for us. They may not all work for you. Adopt what fits, ignore what doesn't.
+- **Claude Code is required.** This playbook is designed specifically for [Claude Code](https://claude.com/claude-code) by Anthropic. It will not work with other AI coding tools without adaptation.
+- **No warranty.** This is provided as-is. See [LICENSE](LICENSE).
+- **Not affiliated with Anthropic.** This is a community resource, not an official Anthropic product.
+
+## Author
+
+Created and maintained by [Martin Dean](https://github.com/Asborien) ([@Asborien](https://github.com/Asborien)).
+
+Extracted from [Certified Coach](https://www.certified-coach.com) — a sport-agnostic coaching credentials platform. 472+ commits, 250+ issues, built and shipped daily with Claude Code.
+
+## Contributing
+
+See [CONTRIBUTING.md](CONTRIBUTING.md). Short version: open an issue first, practices must be production-tested.
 
 ## License
 
-MIT
+MIT — see [LICENSE](LICENSE).
+
+Copyright (c) 2026 Martin Dean / Certified Coach
