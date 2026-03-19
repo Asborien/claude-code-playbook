@@ -105,7 +105,15 @@ Based on my answers:
    - Run `git config core.hooksPath .githooks`
    - Make it executable: `chmod +x .githooks/pre-commit`
 
-5. **Environment:**
+5. **Claude Code hooks (process enforcement):**
+   - Create `.claude/hooks/` directory
+   - Copy `~/claude-code-playbook/templates/hooks/bash-guard.sh` → `.claude/hooks/bash-guard.sh`
+   - Copy `~/claude-code-playbook/templates/hooks/session-start.sh` → `.claude/hooks/session-start.sh`
+   - Copy `~/claude-code-playbook/templates/hooks/settings.json` → `.claude/settings.json`
+   - Make hooks executable: `chmod +x .claude/hooks/*.sh`
+   - These enforce: no push to main, no force push, no --admin bypass, no skipping hooks, release scope gate on every session
+
+7. **Environment:**
    - Create `.gitignore` appropriate for the tech stack
    - Create `.env.example` listing any required environment variables
    - Create `.env` (ensure it's in .gitignore)
