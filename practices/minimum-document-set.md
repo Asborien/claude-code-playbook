@@ -71,7 +71,7 @@ If these 5 documents exist and are accurate:
 
 If ANY of these are missing or stale, the process degrades silently — Claude works without context, scope creeps, docs drift.
 
-## What's NOT required
+## What's NOT required (but recommended)
 
 Everything else is optional enhancement:
 - Trigger tables (useful, not mandatory)
@@ -79,3 +79,4 @@ Everything else is optional enhancement:
 - Persona definitions (useful for multi-user products)
 - Ops dashboards (useful for founders)
 - CI workflows (useful but stack-specific)
+- Health check skills (recommended — installed during setup, see `practices/sanitisation/`)

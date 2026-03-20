@@ -86,6 +86,32 @@ Claude runs your test suite and reports results.
 ### "How does [system] work?"
 Claude reads the relevant docs and codebase to explain how something works, grounded in your actual code — not generic answers.
 
+## Code health
+
+**"Run a health check"**
+Claude runs all 6 health checks and produces a combined report with prioritised findings.
+
+**/health-check**
+Full check — bloat, duplication, security, architecture, test health. Run before releases.
+
+**/bloat-check**
+Find oversized files, long functions, unnecessary abstractions. Run after adding features.
+
+**/dry-check**
+Find code duplication, suggest shared modules. Run weekly during active development.
+
+**/security-check**
+CVEs, secrets, input validation, CSP headers. Run monthly.
+
+**/arch-check**
+Layer violations, N+1 queries, business logic placement. Run monthly.
+
+**/test-health**
+Coverage gaps, brittle tests, redundant tests. Run before releases.
+
+**"Run a full sanitisation"**
+Claude runs the complete 7-pass sanitisation process. See `practices/sanitisation/` for the full prompt sequence. Run before major releases or quarterly.
+
 ## Tips
 
 1. **Start every session with context.** Claude reads CLAUDE.md automatically, but you can add: "We're working on R0 today. The priority is [X]."

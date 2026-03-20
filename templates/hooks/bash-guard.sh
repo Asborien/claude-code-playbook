@@ -81,4 +81,14 @@ if echo "$CMDS" | grep -qE '\bgh pr merge\b' 2>/dev/null; then
   fi
 fi
 
+# ── Release health gate ──────────────────────────────────────
+# Block git tag if no sanitisation log exists with final measurements
+if echo "$CMDS" | grep -qE '\bgit tag\b' 2>/dev/null; then
+  if [ ! -f "SANITISATION_LOG.md" ]; then
+    echo "WARNING: No SANITISATION_LOG.md found. Consider running /health-check before tagging a release." >&2
+    # Note: This is a warning, not a block. Remove 'exit 2' below to make it a hard block.
+    # exit 2
+  fi
+fi
+
 exit 0

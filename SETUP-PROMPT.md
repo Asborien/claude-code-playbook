@@ -113,6 +113,11 @@ Based on my answers:
    - Make hooks executable: `chmod +x .claude/hooks/*.sh`
    - These enforce: no push to main, no force push, no --admin bypass, no skipping hooks, release scope gate on every session
 
+6. **Health check skills:**
+   - Read `~/claude-code-playbook/practices/sanitisation/skills-installer.md`
+   - Install all 6 skills into `.claude/skills/`
+   - These provide: `/health-check`, `/bloat-check`, `/dry-check`, `/security-check`, `/arch-check`, `/test-health`
+
 7. **Environment:**
    - Create `.gitignore` appropriate for the tech stack
    - Create `.env.example` listing any required environment variables
