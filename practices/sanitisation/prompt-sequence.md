@@ -19,7 +19,15 @@ Replace these before running. Use find-and-replace across all prompts:
 
 ---
 
-## Pass 0: Setup (Prompts 1-3)
+## Pass 0: Setup (Prompts 0-3)
+
+### Prompt 0 — Set context
+
+Before running the sequence, tell Claude Code your stack details in one message: language, framework, package manager, source directory, test/build/lint/audit commands, and integration branch name. This replaces the need to find-and-replace variables in every prompt — Claude Code will understand natural language references like "run the tests" from this context.
+
+Example:
+
+> This is a Python/Django project. Package manager: pip. Source directory: src/. Test command: pytest. Build command: python manage.py collectstatic. Lint command: ruff check. Audit command: pip-audit. Integration branch: staging.
 
 ### Prompt 1 — Install skills
 

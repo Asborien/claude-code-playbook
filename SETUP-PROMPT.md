@@ -10,6 +10,8 @@ Work through these phases in order. Complete each phase before moving to the nex
 
 ## Phase 0: Environment check
 
+Ask what programming language and framework the project uses. Then only check for the tools relevant to that stack (e.g., Node.js projects need node/pnpm, Python projects need python/pip, Go projects need go, etc.). Don't assume Node.js.
+
 Check what's installed and set up anything missing:
 
 1. **Git:** Run `git --version`. If not installed, guide me through installing it for my OS.
@@ -17,9 +19,8 @@ Check what's installed and set up anything missing:
    - Installing gh (brew install gh / apt install gh / etc.)
    - Authenticating: `gh auth login` (walk me through the prompts)
    - Verify: `gh auth status`
-3. **Node.js:** Run `node --version`. If not installed, recommend nvm and install LTS.
-4. **Package manager:** Check for pnpm (`pnpm --version`). If not installed, recommend and install it.
-5. **Git config:** Check `git config user.name` and `git config user.email`. If not set, ask me for my name and email and configure them.
+3. **Language runtime and package manager:** Based on the stack, check for the relevant tools (e.g., `node --version` and `pnpm --version` for Node.js, `python --version` and `pip --version` for Python, `go version` for Go). If not installed, guide me through installing them.
+4. **Git config:** Check `git config user.name` and `git config user.email`. If not set, ask me for my name and email and configure them.
 
 Report what was found and what was installed.
 
