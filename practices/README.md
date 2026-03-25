@@ -5,6 +5,7 @@ Working practices extracted from production use of Claude Code.
 | Practice | What it does |
 |----------|-------------|
 | [Memory](memory/) | Decisions persist across sessions |
+| [Planning](planning/) | Automated plan lifecycle, scope discipline, task sequencing |
 | [Release management](release-management/) | Scope control via releases → milestones → issues |
 | [Git workflow](git-workflow/) | Staging-first branch strategy with promotion |
 | [Quality](quality/) | Pre-push audit checklist |
