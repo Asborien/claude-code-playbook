@@ -92,6 +92,54 @@ If it's not in the current release scope, log it as a GitHub issue and move on.
 
 ---
 
+## Plan lifecycle (automated)
+
+Implementation plans are managed by Claude Code hooks (`.claude/hooks/`):
+
+- **EnterPlanMode** → records that planning is active for this session
+- **ExitPlanMode** → commits plan markdown to `docs/plans/`, posts issue comment with link
+  - If no plan was created: posts "exited without a plan" comment
+  - On re-entry: versions plans (v2, v3, etc.) — each version is a separate immutable snapshot
+  - Addendums (v2+) include a header linking back to the previous version for traceability
+- **git commit (without planning)** → posts "scope accepted as-is" comment on the issue
+
+**Storage:** `docs/plans/` is the source of truth. Plans are committed to the repo and linked from GitHub issues.
+
+**Rules:**
+1. Every planning session produces an immutable markdown snapshot in `docs/plans/`
+2. Plan files are committed and linked from the GitHub issue
+3. Re-entering plan mode creates a new version (v2, v3), not an overwrite
+4. Committing without planning is allowed but recorded on the issue for traceability
+5. Always present the plan in conversation for the user to read and discuss before calling ExitPlanMode
+6. Issue comments link to the branch (not staging) since plans are committed before merge
+
+---
+
+## Code health cadence
+
+| Check | When | Why |
+|---|---|---|
+| `/health-check` | Before every release | Catch drift before users see it |
+| `/bloat-check` | After adding 3+ features | Features add code; check for bloat |
+| `/dry-check` | Weekly during active development | Duplication accumulates silently |
+| `/security-check` | Monthly, or after adding dependencies | New deps bring new CVEs |
+| `/arch-check` | Monthly, or after structural changes | Architecture erodes one import at a time |
+| `/test-health` | Before release, or after major refactoring | Ensure tests cover what matters |
+| `/sanitise` | Before major releases, or when codebase has drifted | Full 7-pass cleanup with review gates |
+
+---
+
+## Pre-push audit
+
+Before pushing any branch, verify:
+1. **Library-first:** Are you writing custom code where a library exists? Use the library.
+2. **Dependencies:** New libraries in package manifest? Never rely on transitive deps.
+3. **Documentation:** Did you change code that has docs? Update docs in the same commit.
+4. **Decisions:** Did you make a technology choice? Check `docs/decisions/` for existing ADRs.
+5. **Gotchas:** Discover something non-obvious? Add a note to the relevant doc.
+
+---
+
 ## Tools
 
 | Command | Purpose | Usage |
