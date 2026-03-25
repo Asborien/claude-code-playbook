@@ -2,6 +2,8 @@
 
 Copy everything below the line and paste it into Claude Code.
 
+**Requires Claude Code 2.1.83 or later** (uses `SessionStart` hook event).
+
 ---
 
 I'd like you to set up a new project using the Claude Code Playbook at ~/claude-code-playbook
@@ -14,13 +16,15 @@ Ask what programming language and framework the project uses. Then only check fo
 
 Check what's installed and set up anything missing:
 
-1. **Git:** Run `git --version`. If not installed, guide me through installing it for my OS.
-2. **GitHub CLI:** Run `gh --version`. If not installed, guide me through:
+1. **Claude Code:** Run `claude --version`. Must be 2.1.83 or later. If older, run `claude update`.
+2. **Git:** Run `git --version`. If not installed, guide me through installing it for my OS.
+3. **GitHub CLI:** Run `gh --version`. If not installed, guide me through:
    - Installing gh (brew install gh / apt install gh / etc.)
    - Authenticating: `gh auth login` (walk me through the prompts)
    - Verify: `gh auth status`
-3. **Language runtime and package manager:** Based on the stack, check for the relevant tools (e.g., `node --version` and `pnpm --version` for Node.js, `python --version` and `pip --version` for Python, `go version` for Go). If not installed, guide me through installing them.
-4. **Git config:** Check `git config user.name` and `git config user.email`. If not set, ask me for my name and email and configure them.
+4. **jq:** Run `jq --version`. If not installed: `sudo apt install jq` or `brew install jq`. Required by all Claude Code hooks.
+5. **Language runtime and package manager:** Based on the stack, check for the relevant tools (e.g., `node --version` and `pnpm --version` for Node.js, `python --version` and `pip --version` for Python, `go version` for Go). If not installed, guide me through installing them.
+6. **Git config:** Check `git config user.name` and `git config user.email`. If not set, ask me for my name and email and configure them.
 
 Report what was found and what was installed.
 
@@ -49,9 +53,9 @@ Based on the interview answers, determine which workflow profile fits this proje
 Includes:
 - **Staging branch** — `feature/ → staging → main` promotion workflow
 - **PR workflow** — all changes go through pull requests targeting staging
-- **Full bash-guard** — blocks direct push to main, enforces PR discipline, dead-branch guard
+- **Full hook suite** — bash-guard, planning lifecycle, edit guard, PR guards, push/merge checklists
 - **Milestones and labels** — release tracking via GitHub milestones
-- **Issue templates and project board**
+- **Issue templates, project board, and board automation**
 
 ### Profile B: Direct push
 
@@ -59,7 +63,7 @@ Includes:
 
 Includes:
 - **Push to main** — no staging branch, no PR workflow
-- **Reduced bash-guard** — keeps destructive-action guards (force push, reset --hard, clean -f, --no-verify, git add -A) but removes staging/PR rules and dead-branch guard
+- **Reduced hook suite** — keeps destructive-action guards and health check skills, but removes staging/PR rules, dead-branch guard, planning lifecycle hooks, and edit guard
 - **No milestones or labels** (optional — can add later)
 - **No issue templates or project board** (optional — can add later)
 
@@ -69,10 +73,15 @@ Includes:
 
 - CLAUDE.md as the constitution
 - Memory system
-- Session-start hook
+- Session-start hook (auto-runs on load)
 - Engineering plan and roadmap
-- Health check skills
+- All 8 health check skills (/health-check, /bloat-check, /dry-check, /security-check, /arch-check, /test-health, /startup, /sanitise)
 - Commit message prefixes
+- Context7 MCP server
+
+### Solo vs team
+
+If working in a team (Q6), PRs will require a reviewer before merge. If solo, PRs can be auto-merged after CI passes. This affects the `pre-pr-create.sh` hook configuration.
 
 **Tell me which profile you recommend and why, then let me confirm before continuing.**
 
@@ -115,8 +124,43 @@ Based on my answers and chosen workflow profile:
    gh api repos/[owner]/[repo]/milestones --method POST -f title="R2 — [third release name]"
    ```
 
-7. **Create a project board** *(Profile A only — skip for Profile B):*
-   Guide me through creating a GitHub Project (V2) via the UI if the API is complex, or create via API if possible.
+7. **Create and configure project board** *(Profile A only — skip for Profile B):*
+
+   Create a GitHub Project (V2):
+   ```bash
+   gh project create --owner [owner] --title "[project name]"
+   ```
+
+   Then auto-discover the board IDs needed for planning lifecycle hooks:
+   ```bash
+   # Get the project number
+   gh project list --owner [owner] --format json --jq '.projects[-1].number'
+
+   # Get field IDs (look for "Status" field)
+   gh project field-list [PROJECT_NUMBER] --owner [owner] --format json
+
+   # Get status option IDs (look for "In Progress")
+   gh api graphql -f query='query($owner: String!, $number: Int!) {
+     organization(login: $owner) {
+       projectV2(number: $number) {
+         id
+         field(name: "Status") {
+           ... on ProjectV2SingleSelectField {
+             id
+             options { id name }
+           }
+         }
+       }
+     }
+   }' -f owner="[owner]" -F number=[PROJECT_NUMBER]
+   ```
+
+   If the owner is a user (not an org), use `user(login: $owner)` instead of `organization(login: $owner)`.
+
+   Record these values — they'll be injected into the `pre-enter-plan.sh` hook in Phase 3:
+   - **PROJECT_ID** — the `id` from the projectV2 query
+   - **STATUS_FIELD_ID** — the `id` of the Status field
+   - **IN_PROGRESS_ID** — the `id` of the "In Progress" option
 
 ## Phase 3: Project files
 
@@ -126,6 +170,9 @@ Based on my answers and chosen workflow profile:
    - Project identity
    - Tech stack (be specific — versions, package manager)
    - Key conventions for this stack
+   - Plan lifecycle section (copied from template)
+   - Code health cadence table (copied from template)
+   - Pre-push audit (copied from template)
    - How to run the project (dev, build, test commands)
    - Starter trigger table (if touching X, read Y)
 
@@ -137,6 +184,7 @@ Based on my answers and chosen workflow profile:
 
 3. **Documentation structure:**
    - Create `docs/design/` and `docs/system/`
+   - Create `docs/plans/` — where plan lifecycle hooks commit plan files
    - Create an engineering plan from `~/claude-code-playbook/templates/engineering-plan.md` — fill in what we know
    - Create a roadmap from `~/claude-code-playbook/templates/roadmap.md` — fill in the releases
 
@@ -146,30 +194,91 @@ Based on my answers and chosen workflow profile:
    - Make it executable: `chmod +x .githooks/pre-commit`
 
 5. **Claude Code hooks (process enforcement):**
-   - Create `.claude/hooks/` directory
-   - Copy `~/claude-code-playbook/templates/hooks/bash-guard.sh` → `.claude/hooks/bash-guard.sh`
-   - Copy `~/claude-code-playbook/templates/hooks/session-start.sh` → `.claude/hooks/session-start.sh`
-   - Copy `~/claude-code-playbook/templates/hooks/settings.json` → `.claude/settings.json`
-   - Make hooks executable: `chmod +x .claude/hooks/*.sh`
-   - **Profile A:** Use the full bash-guard as-is. It enforces: no push to main, no force push, no --admin bypass, no skipping hooks, dead-branch guard, PR discipline, release scope gate.
-   - **Profile B:** After copying, remove the following sections from `.claude/hooks/bash-guard.sh`:
-     - "Block push to main/master" (pushing to main is the workflow)
-     - "Branch discipline" / dead-branch guard (no PRs to check)
-     - "PR discipline" / `gh pr create` rules (no staging branch)
-     - Keep: force push block, destructive ops block, --no-verify block, specific file staging, --admin bypass block, release health gate
 
-6. **Health check skills:**
-   - Read `~/claude-code-playbook/practices/sanitisation/skills-installer.md`
-   - Install all 6 skills into `.claude/skills/`
-   - These provide: `/health-check`, `/bloat-check`, `/dry-check`, `/security-check`, `/arch-check`, `/test-health`
+   Create `.claude/hooks/` directory and copy ALL hook templates:
 
-7. **Screenshot tool:**
+   **Both profiles:**
+   ```bash
+   cp ~/claude-code-playbook/templates/hooks/bash-guard.sh .claude/hooks/
+   cp ~/claude-code-playbook/templates/hooks/session-start.sh .claude/hooks/
+   chmod +x .claude/hooks/*.sh
+   ```
+
+   **Profile A only — also copy these:**
+   ```bash
+   cp ~/claude-code-playbook/templates/hooks/on-commit-check-planning.sh .claude/hooks/
+   cp ~/claude-code-playbook/templates/hooks/pre-pr-create.sh .claude/hooks/
+   cp ~/claude-code-playbook/templates/hooks/pre-enter-plan.sh .claude/hooks/
+   cp ~/claude-code-playbook/templates/hooks/on-enter-plan.sh .claude/hooks/
+   cp ~/claude-code-playbook/templates/hooks/on-exit-plan.sh .claude/hooks/
+   cp ~/claude-code-playbook/templates/hooks/pre-edit-write.sh .claude/hooks/
+   cp ~/claude-code-playbook/templates/hooks/mcp-pr-guard.sh .claude/hooks/
+   cp ~/claude-code-playbook/templates/hooks/pre-push.sh .claude/hooks/
+   cp ~/claude-code-playbook/templates/hooks/pre-merge.sh .claude/hooks/
+   chmod +x .claude/hooks/*.sh
+   ```
+
+   **Profile A — substitute variables in hooks:**
+   - In `pre-enter-plan.sh`: replace `{{GITHUB_OWNER}}`, `{{GITHUB_REPO}}`, `{{PROJECT_ID}}`, `{{STATUS_FIELD_ID}}`, `{{IN_PROGRESS_ID}}` with the values from Phase 2. If no project board was created, leave the `PROJECT_ID` as empty string — the hook will skip board automation gracefully.
+
+   **Profile A — configure solo vs team mode:**
+   - If **solo**: leave `pre-pr-create.sh` as-is (offers both `--merge-now` and `--review`)
+   - If **team**: edit `pre-pr-create.sh` to remove `--merge-now` from the allowed patterns, requiring `--review USER` on every PR
+
+   **Profile B — strip staging rules from bash-guard.sh:**
+   - Remove: "Block push to main/master" section (pushing to main is the workflow)
+   - Remove: "Branch discipline" / dead-branch guard (no PRs to check)
+   - Remove: "PR discipline" / `gh pr create` rules (no staging branch)
+   - Remove: "Branch safety" / uncommitted-work-on-switch guard
+   - Keep: force push block, destructive ops block, --no-verify block, specific file staging, release health gate
+
+6. **Generate `.claude/settings.json`:**
+
+   **Profile A** — copy the full settings.json template:
+   ```bash
+   cp ~/claude-code-playbook/templates/hooks/settings.json .claude/settings.json
+   ```
+
+   **Profile B** — create a reduced version with only:
+   ```json
+   {
+     "hooks": {
+       "SessionStart": [
+         { "hooks": [{ "type": "command", "command": ".claude/hooks/session-start.sh" }] }
+       ],
+       "PreToolUse": [
+         { "matcher": "Bash", "hooks": [{ "type": "command", "command": ".claude/hooks/bash-guard.sh" }] }
+       ]
+     }
+   }
+   ```
+
+   **Both profiles** — add Context7 MCP server to settings.json if not already in global settings:
+   ```json
+   "mcpServers": {
+     "context7": {
+       "type": "stdio",
+       "command": "npx",
+       "args": ["-y", "@upstash/context7-mcp"]
+     }
+   }
+   ```
+
+7. **Health check skills:**
+
+   Copy ALL skill templates directly from the playbook (no generation needed):
+   ```bash
+   cp -r ~/claude-code-playbook/templates/skills/* .claude/skills/
+   ```
+
+   This installs 8 skills: `/health-check`, `/bloat-check`, `/dry-check`, `/security-check`, `/arch-check`, `/test-health`, `/startup`, `/sanitise`
+
+8. **Screenshot tool:**
    - Install `cc-snap` for desktop screenshots: `cp ~/claude-code-playbook/extras/cc-snap.sh ~/.local/bin/cc-snap && chmod +x ~/.local/bin/cc-snap`
    - Verify `~/.local/bin` is on PATH (it usually is on Ubuntu/macOS; if not, add it)
-   - Add to the project CLAUDE.md trigger table: `| cc-snap | Capture desktop screen | cc-snap → read ~/screenshot.png |`
    - This lets Claude take and view screenshots on macOS, WSL, Windows (Git Bash), and Linux
 
-8. **Permissions — how autonomous should Claude be?**
+9. **Permissions — how autonomous should Claude be?**
 
    The bash-guard hook (step 5) is your safety net — it blocks destructive commands before they execute. With the guard in place, you can safely give Claude broader permissions so it doesn't prompt you for every command.
 
@@ -220,10 +329,10 @@ Based on my answers and chosen workflow profile:
    - You can switch modes mid-session with `Shift+Tab`.
    - The bash-guard hook runs regardless of permission level — even with full Bash allowed, destructive operations are still blocked.
 
-9. **Environment:**
-   - Create `.gitignore` appropriate for the tech stack
-   - Create `.env.example` listing any required environment variables
-   - Create `.env` (ensure it's in .gitignore)
+10. **Environment:**
+    - Create `.gitignore` appropriate for the tech stack
+    - Create `.env.example` listing any required environment variables
+    - Create `.env` (ensure it's in .gitignore)
 
 ## Phase 4: Feed existing context
 
@@ -254,7 +363,9 @@ If the user said they have existing documents:
    - An engineering issue (project setup, CI configuration)
    - A documentation issue (if docs need writing)
 
-3. Tell me which issue to start with and why.
+3. *(Profile A only)* Add all issues to the project board.
+
+4. Tell me which issue to start with and why.
 
 ## Phase 6: Project scaffold (if new project)
 
@@ -281,10 +392,20 @@ If this is a brand new project with no code:
 
 ## Phase 8: Handover
 
-1. Read `~/claude-code-playbook/CHEAT-SHEET.md` and show me the highlights
-2. Summarise everything that was created:
+1. Summarise everything that was created:
    - Files in the repo
-   - GitHub milestones and issues
-   - What to do next
+   - GitHub milestones, issues, and project board
+   - Hooks installed (list all by name and what they do)
+   - Skills available (list all 8)
+   - MCP servers configured
+
+2. Explain the key workflows:
+   - **Starting work:** Create an issue, create a branch from it (`git checkout -b <number>-<description>`), then code
+   - **Planning:** Enter plan mode → hooks validate branch and update board → exit plan mode → plan committed to `docs/plans/` and posted to issue
+   - **PR creation:** Claude will ask "auto-merge or manual review?" — this is enforced by the hook
+   - **Health checks:** Run `/health-check` before releases, individual checks on cadence
+   - **Sanitisation:** Run `/sanitise` for a full 7-pass codebase cleanup
+
 3. Tell me: "Your project is set up. Here's what you can now ask me to do..."
+
 4. Ask: "Ready to start building? Which issue shall we start with?"
