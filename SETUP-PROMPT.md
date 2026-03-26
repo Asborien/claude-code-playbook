@@ -162,6 +162,78 @@ Based on my answers and chosen workflow profile:
    - **STATUS_FIELD_ID** — the `id` of the Status field
    - **IN_PROGRESS_ID** — the `id` of the "In Progress" option
 
+   **Configure Status options** — expand from the default 3 to match the workflow:
+   ```bash
+   gh api graphql -f query='mutation($fieldId: ID!) {
+     updateProjectV2Field(input: {
+       fieldId: $fieldId
+       singleSelectOptions: [
+         {name: "Ready", color: GRAY, description: "Scoped and ready to start"}
+         {name: "Todo", color: GREEN, description: "Not started"}
+         {name: "In Progress", color: YELLOW, description: "Actively being worked on"}
+         {name: "In Review", color: GRAY, description: "PR open, awaiting review"}
+         {name: "Done", color: PURPLE, description: "Completed"}
+         {name: "Blocked", color: RED, description: "Cannot proceed"}
+       ]
+     }) { clientMutationId }
+   }' -f fieldId="[STATUS_FIELD_ID]"
+   ```
+
+   **Create custom fields** — based on interview answers, add fields for tracking:
+   - **Priority** (single-select): P1 Critical Path, P2 Important, P3 Normal
+   - **Release** (single-select): R0, R1, R2, etc. (one per milestone)
+   - **Estimated Days** (number)
+   - **Blocked By** (text)
+   - **Start Date** (date)
+   - **Target Date** (date)
+
+   Use `createProjectV2Field` mutation for each:
+   ```bash
+   # Example: create a single-select field
+   gh api graphql -f query='mutation($projectId: ID!, $name: String!) {
+     createProjectV2Field(input: {
+       projectId: $projectId
+       dataType: SINGLE_SELECT
+       name: $name
+       singleSelectOptions: [
+         {name: "P1 Critical Path", color: RED, description: ""}
+         {name: "P2 Important", color: ORANGE, description: ""}
+         {name: "P3 Normal", color: GRAY, description: ""}
+       ]
+     }) { clientMutationId }
+   }' -f projectId="[PROJECT_ID]" -f name="Priority"
+
+   # Example: create a number/text/date field
+   gh api graphql -f query='mutation($projectId: ID!, $name: String!) {
+     createProjectV2Field(input: {
+       projectId: $projectId
+       dataType: NUMBER
+       name: $name
+     }) { clientMutationId }
+   }' -f projectId="[PROJECT_ID]" -f name="Estimated Days"
+   ```
+
+   **Link the project to the repo:**
+   ```bash
+   REPO_NODE_ID=$(gh api repos/[owner]/[repo] --jq '.node_id')
+   gh api graphql -f query='mutation($projectId: ID!, $repoId: ID!) {
+     linkProjectV2ToRepository(input: {
+       projectId: $projectId
+       repositoryId: $repoId
+     }) { repository { id } }
+   }' -f projectId="[PROJECT_ID]" -f repoId="$REPO_NODE_ID"
+   ```
+
+   **Add R0 issues to the board:**
+   ```bash
+   gh project item-add [PROJECT_NUMBER] --owner [owner] --url https://github.com/[owner]/[repo]/issues/[N]
+   ```
+
+   **Manual steps** (no API support — tell the user to do these in the GitHub UI):
+   1. **Enable all 6 workflows:** Go to project Settings → Workflows → enable: Item closed, Pull request merged, Auto-close issue, Auto-add sub-issues, Pull request linked to issue, Item added to project
+   2. **Create Board view:** Click "+ New view" → Board (groups by Status, shows the Kanban workflow)
+   3. **Create Timeline view:** Click "+ New view" → Roadmap (uses Start Date / Target Date fields)
+
 ## Phase 3: Project files
 
 1. **CLAUDE.md** — Read `~/claude-code-playbook/templates/CLAUDE.md.template` and create a CLAUDE.md in the repo root, filled in with everything from the interview. Include:

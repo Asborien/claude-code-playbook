@@ -7,6 +7,11 @@
   { "name": "security", "color": "e4e669", "description": "Security finding or improvement" },
   { "name": "testing", "color": "bfd4f2", "description": "Test coverage and quality" },
   { "name": "blocked", "color": "b60205", "description": "Cannot proceed — waiting on dependency" },
-  { "name": "good first issue", "color": "7057ff", "description": "Good starting point for new contributors" },
-  { "name": "dependencies", "color": "0366d6", "description": "Dependency updates" }
+  { "name": "good first issue", "color": "7057ff", "description": "Good starting point" },
+  { "name": "dependencies", "color": "0366d6", "description": "Dependency updates" },
+  { "name": "compliance", "color": "fbca04", "description": "Regulatory compliance requirement" },
+  { "name": "infrastructure", "color": "d4c5f9", "description": "Hosting, CI/CD, deployment" },
+  { "name": "decision", "color": "c5def5", "description": "Architecture/technology decision (ADR)" },
+  { "name": "backlog", "color": "ededed", "description": "Planned feature, not yet assigned to a release" },
+  { "name": "merged-locally", "color": "0E8A16", "description": "Merged via local squash — GitHub Team plan blocks API merge" }
 ]
